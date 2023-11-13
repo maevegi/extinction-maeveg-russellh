@@ -1,6 +1,6 @@
 ---
 title: "Extinctions Unit"
-author: "Your name, partner name"
+author: "Maeve Gilbert, Russell Huang"
 maketitle: true
 output: github_document
 ---
@@ -11,10 +11,40 @@ output: github_document
 library("tidyverse")
 library("httr")
 library("jsonlite")
+library("glue")
 #library("printr")
 knitr::opts_chunk$set(comment=NA)
 ```
 
+
+```{r}
+base <- "https://apiv3.iucnredlist.org/api/v3"
+endpoint <- "speciescount"
+token <- "9bb4facb6d23f48efbf424bb05c0c1ef1cf6f468393bc745d42179ac4aca5fee"
+
+req <- GET(glue("{base}/{endpoint}?token={token}"))
+x <- content(req)
+x$speciescount
+```
+
+```{r}
+species_endpoint <- "species"
+page <- "page/0"
+page0 <- glue ("{base}/{species_endpoint}/{page}?token={token}")
+```
+
+
+```{r}
+x <- GET(page0)
+```
+
+```{r}
+page0_resp <- content(x)
+
+
+sci_name <-
+  map_chr(page0_resp$result, "scientific_name")
+```
 
 
 ## Extinctions Module

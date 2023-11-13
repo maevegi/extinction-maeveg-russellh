@@ -21,31 +21,65 @@ knitr::opts_chunk$set(comment=NA)
 base <- "https://apiv3.iucnredlist.org/api/v3"
 endpoint <- "speciescount"
 token <- "9bb4facb6d23f48efbf424bb05c0c1ef1cf6f468393bc745d42179ac4aca5fee"
+url<- (glue("{base}/{endpoint}?token={token}"))
 
-req <- GET(glue("{base}/{endpoint}?token={token}"))
+req <- GET(url)
 x <- content(req)
 x$speciescount
+
+#https://apiv3.iucnredlist.org/api/v3/species/page/0?token=9bb4facb6d23f48efbf424bb05c0c1ef1cf6f468393bc745d42179ac4aca5fee
 ```
 
 ```{r}
 species_endpoint <- "species"
-page <- "page/0"
-page0 <- glue ("{base}/{species_endpoint}/{page}?token={token}")
+page <- paste0("page/", 0:15)
+all_pages<- glue ("{base}/{species_endpoint}/{page}?token={token}")
+
+
+```
+
+Apply GET function to object all_pages (functional programming).
+```{r}
+if(!file.exists("all_species.rds")){
+all_species<-map(all_pages, GET)
+write_rds(all_species, "all_species.rds")
+}
+
+```
+
+```{r}
+all_species<-read_rds("all_species.rds")
+
+codes<-map_int(all_species, status_code)
+stopifnot(all(codes<400))
+```
+
+
+
+```{r}
+all_resp<- map(all_species, content, encoding="UTF-8")
+
+```
+
+```{r}
+sci_name<-map(all_resp, \(page) map_chr(page$result, "scientific_name"))
+
+x<-unlist(sci_name)
 ```
 
 
 ```{r}
-x <- GET(page0)
-```
-
-```{r}
-page0_resp <- content(x)
-
-
 sci_name <-
   map_chr(page0_resp$result, "scientific_name")
+category<- map_chr(page0_resp$result, "category")
+
+x<-tibble(sci_name, category)
+x|> count(category)
 ```
 
+```{r}
+extinct_species<- all_species|> filter(category %in% c("CR", "EX"))
+```
 
 ## Extinctions Module
 

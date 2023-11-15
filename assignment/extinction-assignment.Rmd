@@ -18,6 +18,12 @@ knitr::opts_chunk$set(comment=NA)
 
 
 ```{r}
+download.file
+unzip
+```
+
+
+```{r}
 base <- "https://apiv3.iucnredlist.org/api/v3"
 endpoint <- "speciescount"
 token <- "9bb4facb6d23f48efbf424bb05c0c1ef1cf6f468393bc745d42179ac4aca5fee"
@@ -42,6 +48,7 @@ Apply GET function to object all_pages (functional programming).
 ```{r}
 if(!file.exists("all_species.rds")){
 all_species<-map(all_pages, GET)
+map(all_species, stop_for_status)
 write_rds(all_species, "all_species.rds")
 }
 
@@ -50,8 +57,8 @@ write_rds(all_species, "all_species.rds")
 ```{r}
 all_species<-read_rds("all_species.rds")
 
-codes<-map_int(all_species, status_code)
-stopifnot(all(codes<400))
+#codes<-map_int(all_species, status_code)
+#stopifnot(all(codes<400))
 ```
 
 
@@ -62,23 +69,75 @@ all_resp<- map(all_species, content, encoding="UTF-8")
 ```
 
 ```{r}
-sci_name<-map(all_resp, \(page) map_chr(page$result, "scientific_name"))
+sci_name<-map(all_resp, \(page) map_chr(page$result, "scientific_name"))|> list_c()
 
-x<-unlist(sci_name)
+#x<-unlist(sci_name)
 ```
 
 
 ```{r}
-sci_name <-
-  map_chr(page0_resp$result, "scientific_name")
-category<- map_chr(page0_resp$result, "category")
 
+category<- map(all_resp, \(page) map_chr(page$result, "category"))|> list_c()
+
+
+```
+```{r}
 x<-tibble(sci_name, category)
 x|> count(category)
+all_species<- tibble(sci_name, category)
 ```
 
+
+
 ```{r}
-extinct_species<- all_species|> filter(category %in% c("CR", "EX"))
+extinct_species<- 
+  all_species|> 
+  filter(category=="EX")|>
+  distinct()
+```
+
+
+```{r}
+sp<- extinct_species$sci_name
+ex_urls<- glue("{base}/speceis/narrative/{sp}?token={token}")|>
+  URLencode()
+ex_urls[[1]]
+GET(ex_urls[[1]])
+```
+```{r}
+if(!file.exists("ex_narrative.rds")){
+  ex_narrative<- map(ex_urls, GET)
+  map(ex_narrative, stop_for_status, .progress=TRUE)
+  write_rds(ex_narrative, "ex_narrative.rds")
+}
+```
+
+
+```{r}
+narrative_contents<- map(ex_narrative, content)
+
+narrative_population<-map(narrative_contents, \(content)    map_chr(content$result[1], "population", .default=""))
+
+
+head(narrative_population, 20)
+
+narrative_rationale<-map(narrative_contents, \(content) content$result[[1]]$rationale)
+
+head(narrative_rationale, 20)
+
+#stringr::str_extract(txt, "\\d{4}")
+```
+
+
+```{r}
+#dates<-narrative_rationale[1:20] |> map(str_extract, "\\d{4}")
+
+last_seen<-narrative_population |> 
+  map_chr(str_extract, "\\d{4}")|> 
+  as.integer()
+  
+
+tibble(sp, last_seen)
 ```
 
 ## Extinctions Module

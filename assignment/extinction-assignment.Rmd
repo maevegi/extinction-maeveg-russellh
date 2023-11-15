@@ -18,8 +18,8 @@ knitr::opts_chunk$set(comment=NA)
 
 
 ```{r}
-download.file
-unzip
+download.file("https://github.com/espm-157/extinction-template/releases/download/data2.0/extinction-data.zip", "extinction-data.zip")
+unzip("extinction-data.zip")
 ```
 
 
@@ -71,7 +71,7 @@ all_resp<- map(all_species, content, encoding="UTF-8")
 ```{r}
 sci_name<-map(all_resp, \(page) map_chr(page$result, "scientific_name"))|> list_c()
 
-#x<-unlist(sci_name)
+x<-unlist(sci_name)
 ```
 
 
@@ -81,10 +81,18 @@ category<- map(all_resp, \(page) map_chr(page$result, "category"))|> list_c()
 
 
 ```
+
+```{r}
+class<-map(all_resp, \(page) map_chr(page$result, "class_name"))|> list_c()
+
+
+```
+
+
 ```{r}
 x<-tibble(sci_name, category)
 x|> count(category)
-all_species<- tibble(sci_name, category)
+#all_species<- tibble(sci_name, category)
 ```
 
 
@@ -92,17 +100,18 @@ all_species<- tibble(sci_name, category)
 ```{r}
 extinct_species<- 
   all_species|> 
-  filter(category=="EX")|>
-  distinct()
+  filter(category=="EX")
+head(extinct_species)
 ```
 
 
 ```{r}
 sp<- extinct_species$sci_name
-ex_urls<- glue("{base}/speceis/narrative/{sp}?token={token}")|>
+ex_urls<- glue("{base}/species/narrative/{sp}?token={token}")|>
   URLencode()
 ex_urls[[1]]
 GET(ex_urls[[1]])
+
 ```
 ```{r}
 if(!file.exists("ex_narrative.rds")){
@@ -110,6 +119,8 @@ if(!file.exists("ex_narrative.rds")){
   map(ex_narrative, stop_for_status, .progress=TRUE)
   write_rds(ex_narrative, "ex_narrative.rds")
 }
+
+ex_narrative<-read_rds("ex_narrative.rds")
 ```
 
 
@@ -137,7 +148,8 @@ last_seen<-narrative_population |>
   as.integer()
   
 
-tibble(sp, last_seen)
+gone<-tibble(sp, last_seen)|>
+  distinct()
 ```
 
 ## Extinctions Module

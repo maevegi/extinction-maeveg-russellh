@@ -80,6 +80,7 @@ x<-unlist(sci_name)
 category<- map(all_resp, \(page) map_chr(page$result, "category"))|> list_c()
 
 
+
 ```
 
 ```{r}
@@ -89,9 +90,10 @@ class<-map(all_resp, \(page) map_chr(page$result, "class_name"))|> list_c()
 ```
 
 
+
 ```{r}
-x<-tibble(sci_name, category)
-x|> count(category)
+x<-tibble(sci_name, category, class)
+#x|> count(category)
 #all_species<- tibble(sci_name, category)
 ```
 
@@ -102,6 +104,8 @@ extinct_species<-
   all_species|> 
   filter(category=="EX")
 head(extinct_species)
+
+
 ```
 
 
@@ -148,8 +152,17 @@ last_seen<-narrative_population |>
   as.integer()
   
 
-gone<-tibble(sp, last_seen)|>
+gone<-tibble(sci_name=sp, last_seen)|>
   distinct()
+head(gone)
+
+all_data<-x|>
+  filter(category=="EX")|>
+  left_join(gone)
+head(all_data)
+
+#join gone table with all_data table by species name. sp=species_name
+#how to join by and rename these 
 ```
 
 ## Extinctions Module

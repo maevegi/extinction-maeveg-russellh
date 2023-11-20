@@ -102,11 +102,13 @@ total_sp<-combined|>
   count(class, name="total")
 
 #filtered by extinctions by class and counts number of extinctions per century
-combined|>
+cumulative<-combined|>
   filter(category=="EX")|> 
   mutate(last_seen= replace_na(last_seen, 2023), century= str_extract(last_seen, "\\d{2}"))|>
   count(century, class)|>
-  left_join(total_sp)
+  left_join(total_sp)|>
+  
+
   
 birds<-combined|>
   filter(class=="AVES", category=="EX")|>

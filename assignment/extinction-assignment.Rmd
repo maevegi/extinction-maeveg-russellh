@@ -93,15 +93,33 @@ class<-map(all_resp, \(page) map_chr(page$result, "class_name"))|> list_c()
 Joining these lists together and making all_species lists into a tibble
 ```{r}
 #x|> count(category)
-all_species<- tibble(sci_name_list, category, class)
+all_species<- tibble(sci_name=sci_name_list, category, class)
 
-all_species|>
-  filter(class=="MAMMALIA", category=="EX")|> 
-  mutate(last_seen=replace_na(last_seen, 2023))
+combined<-dplyr::left_join(all_species, gone)
 
-all_species|>
+total_sp<-combined|>
   filter(class%in% c("MAMMALIA", "AVES", "AMPHIBIA", "REPTILIA", "ACTINOPTERYGII"))|>
-  count(class)
+  count(class, name="total")
+
+#filtered by extinctions by class and counts number of extinctions per century
+combined|>
+  filter(category=="EX")|> 
+  mutate(last_seen= replace_na(last_seen, 2023), century= str_extract(last_seen, "\\d{2}"))|>
+  count(century, class)|>
+  left_join(total_sp)
+  
+birds<-combined|>
+  filter(class=="AVES", category=="EX")|>
+  mutate(last_seen= replace_na(last_seen, 2023))
+unique(birds$last_seen)
+
+amphibians<- combined|>
+  filter(class=="AMPHIBIA", category=="EX")|>
+  mutate(last_seen= tidyr::replace_na(last_seen, 2023))
+head(amphibians, 20)
+
+
+#final table should include extinctions by year, cumulative extinctions up to and including each year, and percentage of total species that are extinct by year
 ```
 
 
@@ -162,6 +180,7 @@ last_seen<-narrative_population |>
 gone<-tibble(sci_name, last_seen)|>
   distinct()
 head(gone)
+count(gone)
 
 all_data<-x|>
   filter(category=="EX")|>
@@ -170,6 +189,10 @@ head(all_data, 20)
 
 #join gone table with all_data table by species name. sp=species_name
 #how to join by and rename these 
+```
+We now need to create a table with columns: century, cumulative extinction  percent, class
+```{r}
+
 ```
 
 ## Extinctions Module

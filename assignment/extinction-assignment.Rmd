@@ -55,7 +55,7 @@ write_rds(all_species, "all_species.rds")
 ```
 
 ```{r}
-all_species<-read_rds("all_species.rds")
+all_species_rds<-read_rds("all_species.rds")
 
 #codes<-map_int(all_species, status_code)
 #stopifnot(all(codes<400))
@@ -64,16 +64,16 @@ all_species<-read_rds("all_species.rds")
 
 
 ```{r}
-all_resp<- map(all_species, content, encoding="UTF-8")
+all_resp<- map(all_species_rds, content, encoding="UTF-8")
 
 ```
 
+Calling the relevant information needed to describe extinct species. Scientific name, category (extinct) and class. 
 ```{r}
-sci_name<-map(all_resp, \(page) map_chr(page$result, "scientific_name"))|> list_c()
+sci_name_list<-map(all_resp, \(page) map_chr(page$result, "scientific_name"))|> list_c()
 
-x<-unlist(sci_name)
+#x<-unlist(sci_name)
 ```
-
 
 ```{r}
 
@@ -90,11 +90,18 @@ class<-map(all_resp, \(page) map_chr(page$result, "class_name"))|> list_c()
 ```
 
 
-
+Joining these lists together and making all_species lists into a tibble
 ```{r}
-x<-tibble(sci_name, category, class)
 #x|> count(category)
-#all_species<- tibble(sci_name, category)
+all_species<- tibble(sci_name_list, category, class)
+
+all_species|>
+  filter(class=="MAMMALIA", category=="EX")|> 
+  mutate(last_seen=replace_na(last_seen, 2023))
+
+all_species|>
+  filter(class%in% c("MAMMALIA", "AVES", "AMPHIBIA", "REPTILIA", "ACTINOPTERYGII"))|>
+  count(class)
 ```
 
 
@@ -110,8 +117,8 @@ head(extinct_species)
 
 
 ```{r}
-sp<- extinct_species$sci_name
-ex_urls<- glue("{base}/species/narrative/{sp}?token={token}")|>
+sci_name<- extinct_species$sci_name
+ex_urls<- glue("{base}/species/narrative/{sci_name}?token={token}")|>
   URLencode()
 ex_urls[[1]]
 GET(ex_urls[[1]])
@@ -131,7 +138,7 @@ ex_narrative<-read_rds("ex_narrative.rds")
 ```{r}
 narrative_contents<- map(ex_narrative, content)
 
-narrative_population<-map(narrative_contents, \(content)    map_chr(content$result[1], "population", .default=""))
+narrative_population<-map(narrative_contents, \(content)     map_chr(content$result[1], "population", .default=""))
 
 
 head(narrative_population, 20)
@@ -152,14 +159,14 @@ last_seen<-narrative_population |>
   as.integer()
   
 
-gone<-tibble(sci_name=sp, last_seen)|>
+gone<-tibble(sci_name, last_seen)|>
   distinct()
 head(gone)
 
 all_data<-x|>
   filter(category=="EX")|>
   left_join(gone)
-head(all_data)
+head(all_data, 20)
 
 #join gone table with all_data table by species name. sp=species_name
 #how to join by and rename these 

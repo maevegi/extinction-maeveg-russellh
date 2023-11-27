@@ -103,15 +103,20 @@ total_sp<-combined|>
 
 #filtered by extinctions by class and counts number of extinctions per century
 cumulative<-combined|>
-  filter(category=="EX")|> 
+  filter(category=="EX")|>
+  filter(class%in% c("MAMMALIA", "AVES", "AMPHIBIA", "REPTILIA", "ACTINOPTERYGII"))|>
   mutate(last_seen= replace_na(last_seen, 2023), century= str_extract(last_seen, "\\d{2}"))|>
   count(century, class)|>
   left_join(total_sp)|>
   mutate(percent_extinct=(n/total)*10000)
 cumulative
 #divide number of extinctions per class per year by total number of species per class, multiply by a million (?), divide by 100 to get a percentage
+#could try making this table by filtering total_sp table and not joining it to the combined table 
+#plot percentages by century??
+```
 
-  
+```{r}
+#Tester tables to look at extinction dates for different classes  
 birds<-combined|>
   filter(class=="AVES", category=="EX")|>
   mutate(last_seen= replace_na(last_seen, 2023))

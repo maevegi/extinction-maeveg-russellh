@@ -34,7 +34,7 @@ x$speciescount
 
 #https://apiv3.iucnredlist.org/api/v3/species/page/0?token=9bb4facb6d23f48efbf424bb05c0c1ef1cf6f468393bc745d42179ac4aca5fee
 ```
-
+Retrieving all pages with species data
 ```{r}
 species_endpoint <- "species"
 page <- paste0("page/", 0:15)
@@ -145,16 +145,7 @@ last_seen<-narrative_population |>
 gone<-tibble(sci_name, last_seen)|>
   distinct()
 head(gone)
-count(gone)
 
-```
-
-
-```{r}
-extinct_species<- 
-  all_species|> 
-  filter(category=="EX")
-head(extinct_species)
 
 ```
 
@@ -162,14 +153,16 @@ head(extinct_species)
 Joining these lists together and making all_species lists into a tibble
 ```{r}
 #x|> count(category)
-all_species<- tibble(sci_name=sci_name_list, category, class)
+all_species_table<- tibble(sci_name=sci_name_list, category, class)
 
 combined<-dplyr::left_join(all_species, gone)
 
 total_sp<-combined|>
   filter(class%in% c("MAMMALIA", "AVES", "AMPHIBIA", "REPTILIA", "ACTINOPTERYGII"))|>
   count(class, name="total")
+```
 
+```{r}
 #filtered by extinctions by class and counts number of extinctions per century
 cumulative<-combined|>
   filter(category=="EX")|>
@@ -182,10 +175,9 @@ cumulative<-combined|>
   mutate(cumulative_extinct=(cumsum(n))) |>
   mutate(percent_cumulative_extinct=((cumulative_extinct/total)*100)) 
 cumulative
-#divide number of extinctions per class per year by total number of species per class, multiply by a million (?), divide by 100 to get a percentage
-#could try making this table by filtering total_sp table and not joining it to the combined table 
-#plot percentages by century??
+
 ```
+
 ```{r}
 extinctions_plot<- cumulative|>
   ggplot()+

@@ -3,14 +3,13 @@
 
 ## Team Members:
 
-- full name, github handle
-- full name, github handle
+- Maeve Gilbert, maevegi
+- Russell Huang, Huangary1126
 
-This repository is a template for your team's repository.
+## Assignment Description
+This assignment examines the evidence for the "Sixth Mass Extinction" as first described by Barnosky et al. (2011). The paper can be found here: https://www.nature.com/articles/nature09678. We are attempting to replicate a version of the graph produced by Ceballos et al. (2015): https://www.science.org/doi/10.1126/sciadv.1400253 which graphs the cumulative extinctions of vertebrates by century. 
 
-## assignment
 
-All work for this assignment should be in the `assignment` directory.  You will work in the `.Rmd` notebook, and commit your rendered output files (`.md` and associated files) in the `assignment` directory as well.
 
 ## Special files
 

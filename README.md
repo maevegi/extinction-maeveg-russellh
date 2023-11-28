@@ -12,11 +12,11 @@ This assignment examines the evidence for the "Sixth Mass Extinction" as first d
 ### Files
 
 - The README.md file gives an overview of the projet and relevant descriptions of the files. 
-- The .Rmd and .md files for the project can be found in the assignment folder. 
+- The .Rmd and .md files for the project can be found in the assignment folder. This folder also contains .rds and .zip files which contain the data used for this project which have been stored in this format. 
 
-### Infrastructure for Testing
+### Other
 
-- `DESCRIPTION` a metadata file for the repository, based on the R package standard. It's main purpose here is as a place to list any additional R packages/libraries needed for any of the `.Rmd` files to run.
+- `DESCRIPTION` a metadata file for the repository. It's main purpose here is as a place to list any additional R packages/libraries needed for any of the `.Rmd` files to run. In this case, we are using new libraries, including jsonlite and httr. 
 
 
 

@@ -2,7 +2,9 @@
 title: "Examining the Evidence for a Sixth Mass Extinction"
 author: "Maeve Gilbert, Russell Huang"
 maketitle: true
-output: github_document
+output: 
+ md_document:
+ github_document:
 ---
 
 ```{r include=FALSE}
@@ -15,7 +17,7 @@ library("ggplot2")
 knitr::opts_chunk$set(comment=NA)
 ```
 
-In order to examine extinction data, we need to download the IUCN Red List historical data on species extintions. This data can be found in the following file, as our own attempt to call the URL caused the database to crash. This file allows us to quickly access the data from an external source (in this case a github page) rather than attempting to access it every time we ran our code. 
+In order to examine extinction data, we need to download the IUCN Red List historical data on species extinctions. This data can be found in the following file, as our own attempt to call the URL caused the database to crash. This file allows us to quickly access the data from an external source (in this case a github page) rather than attempting to access it from the API every time we ran our code. 
 ```{r}
 download.file("https://github.com/espm-157/extinction-template/releases/download/data2.0/extinction-data.zip", "extinction-data.zip")
 unzip("extinction-data.zip")
@@ -34,7 +36,7 @@ x$speciescount
 
 #https://apiv3.iucnredlist.org/api/v3/species/page/0?token=9bb4facb6d23f48efbf424bb05c0c1ef1cf6f468393bc745d42179ac4aca5fee
 ```
-Retrieving all pages with species data
+Retrieving all pages (0-15) with species data
 ```{r}
 species_endpoint <- "species"
 page <- paste0("page/", 0:15)
@@ -46,10 +48,11 @@ all_pages<- glue ("{base}/{species_endpoint}/{page}?token={token}")
 Apply GET function to object all_pages (functional programming).
 ```{r}
 if(!file.exists("all_species.rds")){
-all_species<-map(all_pages, GET)
+all_species<-map(all_pages, GET, .progress=TRUE)
 map(all_species, stop_for_status)
 write_rds(all_species, "all_species.rds")
 }
+
 
 ```
 
@@ -61,13 +64,13 @@ all_species_rds<-read_rds("all_species.rds")
 ```
 
 
-
+Response objects from URLs. 
 ```{r}
 all_resp<- map(all_species_rds, content, encoding="UTF-8")
 
 ```
 
-Calling the relevant information needed to describe extinct species. Scientific name, category (extinct) and class. 
+Calling the relevant information needed to describe extinct species. Scientific name, category (ex: threatened, endangered, extinct) and class. 
 ```{r}
 sci_name_list<-map(all_resp, \(page) map_chr(page$result, "scientific_name"))|> list_c()
 
@@ -85,7 +88,7 @@ category<- map(all_resp, \(page) map_chr(page$result, "category"))|> list_c()
 ```{r}
 class<-map(all_resp, \(page) map_chr(page$result, "class_name"))|> list_c()
 
-
+all_species_table<- tibble(sci_name=sci_name_list, category, class)
 ```
 
 ```{r}
@@ -109,15 +112,13 @@ head(narrative_population, 20)
 
 narrative_rationale<-map(narrative_contents, \(content) content$result[[1]]$rationale)
 
-head(narrative_rationale, 20)
-
-#stringr::str_extract(txt, "\\d{4}")
 ```
 
 ```{r}
+
 extinct_species<- 
-  all_species|> 
-  filter(category=="EX")
+  all_species_table|> 
+  dplyr::filter(category=="EX")
 head(extinct_species)
 
 ```
@@ -153,9 +154,9 @@ head(gone)
 Joining these lists together and making all_species lists into a tibble
 ```{r}
 #x|> count(category)
-all_species_table<- tibble(sci_name=sci_name_list, category, class)
 
-combined<-dplyr::left_join(all_species, gone)
+
+combined<-dplyr::left_join(all_species_table, gone)
 
 total_sp<-combined|>
   filter(class%in% c("MAMMALIA", "AVES", "AMPHIBIA", "REPTILIA", "ACTINOPTERYGII"))|>
@@ -189,7 +190,7 @@ extinctions_plot
 
   
 ```
-
+Discuss issues with the data set (ie dates that are not explicitly written out 17th century etc. that would be dropped from the dataset, replacing NA values with 2023). Discuss differences in how much data is collected for each class. Implications of the graph. Discuss issues with sampling methods. 
 
 
 ```{r}

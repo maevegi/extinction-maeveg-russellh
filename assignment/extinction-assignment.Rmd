@@ -69,7 +69,7 @@ all_resp<- map(all_species_rds, content, encoding="UTF-8")
 
 ```
 
-From the response object, we need to extract  the relevant information needed to describe extinct species. This includes the scientific name, category (ex: threatened, endangered, extinct) and class (ex: mammalia, amphibia, aves). This is then put into list format. Lastly, we want to put each of these lists into one table (all_species_table).
+From the response object, we need to extract the relevant information needed to describe extinct species. This includes the scientific name, category (ex: threatened, endangered, extinct) and class (ex: mammalia, amphibia, aves). This is then put into list format. Lastly, we want to put each of these lists into one table (all_species_table).
 ```{r}
 sci_name_list<-map(all_resp, \(page) map_chr(page$result, "scientific_name"))|> list_c()
 
@@ -78,8 +78,6 @@ sci_name_list<-map(all_resp, \(page) map_chr(page$result, "scientific_name"))|> 
 ```{r}
 
 category<- map(all_resp, \(page) map_chr(page$result, "category"))|> list_c()
-
-
 
 ```
 
@@ -95,9 +93,7 @@ Of all of the species we have just compiled into one table, we want to know whic
 extinct_species<- 
   all_species_table|> 
   dplyr::filter(category=="EX")
-head(extinct_species)
 ```
-
 
 
 The data we configured has thus far given us the species scientific name, category, and class, in this case extinct. However, we want to get more specific information about these species regarding when they went extinct. We need to construct another REST API to obtain this data. 
@@ -120,7 +116,7 @@ if(!file.exists("ex_narrative.rds")){
 ex_narrative<-read_rds("ex_narrative.rds")
 ```
 
-We then need to extract the contents of this .rds file containing extinction dates. Within the description of each species, the extinction date can be found either in the population description or the rationale. 
+We then need to extract the contents of this .rds file containing extinction dates. Within the description of each species, the extinction date can be found either in the population description or the rationale. The two examples below show how the information appears in text form containing the extinction date. 
 ```{r}
 narrative_contents<- map(ex_narrative, content)
 
@@ -143,14 +139,13 @@ last_seen<-narrative_population |>
 
 Once we have the list of last seen dates, they can then be put into a tibble containing the scientific name and extinction dates for each species. 
 ```{r}
-
 gone<-tibble(sci_name, last_seen)|>
   distinct()
 
 ```
 
 
-Finally, we can join the table gone, containing species and extinction dates, with the earlier all_species_table, which has species names, category, and class. From this large table, we can determine the number of species in each class we are going to use for our final figure. In this case, we are focusing on mammals, birds, amphibians, reptiles, and bony fish. 
+Finally, we can join the table "gone", containing species and extinction dates, with the earlier "all_species_table", which has species names, category, and class. From this large table, we can determine the number of species in each class we are going to use for our final figure. In this case, we are focusing on mammals, birds, amphibians, reptiles, and bony fish. 
 ```{r}
 
 combined<-dplyr::left_join(all_species_table, gone)
@@ -164,9 +159,8 @@ total_sp<-combined|>
 ## Examining Extinction Rates by Class
 
 For our final table, we need to perform a number of functions in order to filter by the correct categories and determine extinction rates. From our combined table, we can filter by only species that are extinct. We can then filter by the relevant classes of species. However, there are many NA values in the data. These are species that have gone extinct but whose precise extinction date is unknown. We are therefore assigning the year 2023 to all NA values. The extinctions with known dates are assigned a century of extinction by filtering by the first two digits of the year. We then need to join this table with the total_sp table, which gives a total count of each species in each class. 
-By grouping the classes together, we can calculate the percentage of each class that went extinct in each year by dividing the number of extinctions (n) by the total number of species in the class (total). However, because we are basing this off of extinction rates of million species year, we would need to multiply by one million and then divide by one hundred. We then need to divide by one hundred again in order to get a percentage of the total species evaluated by the IUCN. This means that the ultimate calculation will only be multiplying by 100. From there, we calculated the cumulative sum of extinctions by class for each century. Using these numbers, we could calculate the cumulative percentages 
+By grouping the classes together, we can calculate the percentage of each class that went extinct in each year by dividing the number of extinctions (n) by the total number of species in the class (total). However, because we are basing this off of extinction rates of million species year, we would need to multiply by one million and then divide by one hundred. We then need to divide by one hundred again in order to get a percentage of the total species evaluated by the IUCN. This means that the ultimate calculation will only be multiplying by 100. From there, we calculated the cumulative sum of extinctions by class for each century. Using these numbers, we could calculate the cumulative percentages by dividing the cumulative number of extinct species in each class by the total number of species in each class and multiplying by 100.  
 ```{r}
-#filtered by extinctions by class and counts number of extinctions per century
 cumulative<-combined|>
   filter(category=="EX")|>
   filter(class%in% c("MAMMALIA", "AVES", "AMPHIBIA", "REPTILIA", "ACTINOPTERYGII"))|>
@@ -178,9 +172,10 @@ cumulative<-combined|>
   mutate(cumulative_extinct=(cumsum(n))) |>
   mutate(percent_cumulative_extinct=((cumulative_extinct/total)*100)) 
 
-
 ```
 ## Graphing the Results
+
+Once we have the cumulative percentages for each class, we can graph these results. The x-axis units are centuries and the y axis is the cumulative percentage of extinct speices. The classes are differentiated by color. 
 ```{r}
 extinctions_plot<- cumulative|>
   ggplot()+
@@ -192,41 +187,21 @@ extinctions_plot
 
   
 ```
-Note that due to the methods used to separate extinctions by year, century refers to the first two numbers of the year. (ex: 14th century acutally refers to the years with 14 as the first two digits, rather than the 1300s).
+Note that due to the methods used to separate extinctions by year, century refers to the first two numbers of the year. (ex: 14th century actually refers to the years with 14 as the first two digits, rather than the 1300s).
 
 ## Discussion
-Discuss issues with the data set (ie dates that are not explicitly written out 17th century etc. that would be dropped from the dataset, replacing NA values with 2023). Discuss differences in how much data is collected for each class. Implications of the graph. Discuss issues with sampling methods. 
 
+It is important to note that in this data set, not all of the years are included in the total count. The method of filtering dates kept only those with four digits, which excluded extinction dates that may have been characterized by a century, for example, "This species went extinct in the 18th century". In these cases, the data would not have been retrieved because it was not a four-digit integer. Additionally, the NA dates that were replaced with 2023 may inaccurately represent the data of extinction and weigh the data more heavily towards the present. Another limitation of the data is that the species assessed by the IUCN are incomplete and do not reflect all species on Earth, especially those that have yet to be described by science. There are also instances where extinction dates may be inaccurate as the last sighting of a species does not necessarily reflect their absence on Earth. 
 
-```{r}
-#Tester tables to look at extinction dates for different classes  
-birds<-combined|>
-  filter(class=="AVES", category=="EX")|>
-  mutate(last_seen= replace_na(last_seen, 2023))
-unique(birds$last_seen)
+Due to sampling biases and lack of data, there are major differences in the amount of data for mammals and birds compared to other classes. These are usually the two best-described classes due to their visibility and preference by humans. There is therefore a longer record of the species, while the data for amphibians, reptiles, and bony fish only dates back to the 1800s. These classes may also be subject to some of the other issues with the data described above. 
 
-amphibians<- combined|>
-  filter(class=="AMPHIBIA", category=="EX")|>
-  mutate(last_seen= tidyr::replace_na(last_seen, 2023))
-head(amphibians, 20)
-
-
-#final table should include extinctions by year, cumulative extinctions up to and including each year, and percentage of total species that are extinct by year
-```
-
-We can then compare the results from our table to those generated by Ceballos et al (2015)(http://doi.org/10.1126/sciadv.1400253), as shown below. There are some noticeable differences between the two, mainly that our graph is divided by class, while Ceballos et al. compared mammal and bird extinctions on their own compared to that of fish and amphibians (other vertebrates), compared to the total cumulative exinction rates of all categories combined (vertebrates). Ceballos et al. used a background rate of extinction (dashed black line) of 2 species extinctions per million years, while our graph used a value of one extinction per million species years. 
+With these limitations in mind, we can then compare the results from our table to those generated by Ceballos et al. (2015), shown below. There are some noticeable differences between the two, mainly that our graph is divided by class, while Ceballos et al. compared mammal and bird extinctions on their own compared to that of fish and amphibians (other vertebrates), compared to the total cumulative exinction rates of all categories combined (vertebrates). Ceballos et al. used a background rate of extinction (dashed black line) of 2 species extinctions per million years, while our graph used a value of one extinction per million species years. However, both graphs represent increasing numbers of cumulative extinctions across all classes that exceed the background rate. It is especially high in mammals and birds. 
 
 
 
 ![](https://espm-157.carlboettiger.info/img/extinctions.jpg)
 
-## Additional references:
+## References:
 
-- http://www.hhmi.org/biointeractive/biodiversity-age-humans (Video)
-- [Barnosky et al. (2011)](http://doi.org/10.1038/nature09678)
-- [Pimm et al (2014)](http://doi.org/10.1126/science.1246752)
-- [Sandom et al (2014)](http://dx.doi.org/10.1098/rspb.2013.3254)
-
-
-
-
+- Ceballos et al. (2015): http://doi.org/10.1126/sciadv.1400253
+- Barnosky et al. (2011):(http://doi.org/10.1038/nature09678)

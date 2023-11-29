@@ -16,14 +16,15 @@ library("glue")
 library("ggplot2")
 knitr::opts_chunk$set(comment=NA)
 ```
+In this module, we are attempting to examine and recreate the conclusions drawn by Ceballos et al. in their 2015 paper which concludes that "the average rate of vertebrate species loss over the last century is up to 100 times higher than the background rate " (Ceballos et al. 2015). This paper builds off the work of Barnosky et al. (2011), who examined the fossil records to determine that current extinction rates are higher than those expected by the record. In order to qualify as a "Mass Extinction", the rate of extinction is higher than that of any other geological epoch and results in a loss of over 75% of estimated species within a relatively short geological period, usually less than 2 million years, and the rate of extinction is higher than the background rate (Barnosky et al. 2011). 
 
-In order to examine extinction data, we need to download the IUCN Red List historical data on species extinctions. This data can be found in the following file, as our own attempt to call the URL caused the database to crash. This file allows us to quickly access the data from an external source (in this case a github page) rather than attempting to access it from the API every time we ran our code. 
+In order to examine current extinction data, we need to access the IUCN Red List historical data on species extinctions. This data can be found in the following file, as our own attempt to call the URL caused the database to crash. This file allows us to quickly access the data from an external source (in this case a github page) rather than attempting to access it from the API every time we ran our code. 
 ```{r}
 download.file("https://github.com/espm-157/extinction-template/releases/download/data2.0/extinction-data.zip", "extinction-data.zip")
 unzip("extinction-data.zip")
 ```
 
-This chunk uses the REST API information from the IUCN website. This code breaks the URL of the data into pieces that can be read by the computer. This API call uses a universal base used by all of the different calls. In this case, we only want to look at the total number of species in the database, so our endpoint is "species count". We are using a public token (query) to access the data. 
+This chunk uses the REST API information from the IUCN website. This code breaks the URL of the data into pieces that can be read by the computer. This API call uses a universal base used by all of the different calls within the API. In this case, we only want to look at the total number of species in the database, so our endpoint is "species count". We are using a public token (query) to access the data. 
 ```{r}
 base <- "https://apiv3.iucnredlist.org/api/v3"
 endpoint <- "speciescount"
@@ -34,9 +35,8 @@ req <- GET(url)
 x <- content(req)
 x$speciescount
 
-#https://apiv3.iucnredlist.org/api/v3/species/page/0?token=9bb4facb6d23f48efbf424bb05c0c1ef1cf6f468393bc745d42179ac4aca5fee
 ```
-Retrieving all pages (0-15) with species data
+Next, we want to retrieve all pages (0-15) with species data from the API. 
 ```{r}
 species_endpoint <- "species"
 page <- paste0("page/", 0:15)
@@ -45,7 +45,7 @@ all_pages<- glue ("{base}/{species_endpoint}/{page}?token={token}")
 
 ```
 
-Apply GET function to object all_pages (functional programming).
+Because we are retrieving the data for multiple speceis and pages, we cna apply the map function to perform the function on each page, rather than doin it individually. This also stops the map function if the status code returned is above 200, that is to say, it cannot retrieve the page. 
 ```{r}
 if(!file.exists("all_species.rds")){
 all_species<-map(all_pages, GET, .progress=TRUE)
@@ -59,8 +59,6 @@ write_rds(all_species, "all_species.rds")
 ```{r}
 all_species_rds<-read_rds("all_species.rds")
 
-#codes<-map_int(all_species, status_code)
-#stopifnot(all(codes<400))
 ```
 
 
@@ -70,11 +68,10 @@ all_resp<- map(all_species_rds, content, encoding="UTF-8")
 
 ```
 
-Calling the relevant information needed to describe extinct species. Scientific name, category (ex: threatened, endangered, extinct) and class. 
+From the response object, we need to extract  the relevant information needed to describe extinct species. This includes the scientific name, category (ex: threatened, endangered, extinct) and class (ex: mammalia, amphibia, aves). This is then put into list format. Lastly, we want to put each of these lists into one table (all_species_table).
 ```{r}
 sci_name_list<-map(all_resp, \(page) map_chr(page$result, "scientific_name"))|> list_c()
 
-#x<-unlist(sci_name)
 ```
 
 ```{r}
@@ -90,6 +87,7 @@ class<-map(all_resp, \(page) map_chr(page$result, "class_name"))|> list_c()
 
 all_species_table<- tibble(sci_name=sci_name_list, category, class)
 ```
+
 
 ```{r}
 if(!file.exists("ex_narrative.rds")){
@@ -107,8 +105,6 @@ narrative_contents<- map(ex_narrative, content)
 
 narrative_population<-map(narrative_contents, \(content)     map_chr(content$result[1], "population", .default=""))
 
-
-head(narrative_population, 20)
 
 narrative_rationale<-map(narrative_contents, \(content) content$result[[1]]$rationale)
 
@@ -133,7 +129,6 @@ GET(ex_urls[[1]])
 ```
 
 ```{r}
-#dates<-narrative_rationale[1:20] |> map(str_extract, "\\d{4}")
 
 last_seen<-narrative_population |> 
   map_chr(str_extract, "\\d{4}")|> 
@@ -145,16 +140,12 @@ last_seen<-narrative_population |>
 
 gone<-tibble(sci_name, last_seen)|>
   distinct()
-head(gone)
-
 
 ```
 
 
 Joining these lists together and making all_species lists into a tibble
 ```{r}
-#x|> count(category)
-
 
 combined<-dplyr::left_join(all_species_table, gone)
 
@@ -175,7 +166,7 @@ cumulative<-combined|>
   mutate(percent_extinct=((n/total)*100))|>
   mutate(cumulative_extinct=(cumsum(n))) |>
   mutate(percent_cumulative_extinct=((cumulative_extinct/total)*100)) 
-cumulative
+
 
 ```
 
@@ -183,13 +174,15 @@ cumulative
 extinctions_plot<- cumulative|>
   ggplot()+
   geom_line(aes(x=century, y=percent_cumulative_extinct, color=class, group=class))+
-  ggtitle("Cumulative Species Extinctions")+
+  ggtitle("Cumulative Species Extinctions of IUCN Evaluated Species")+
   xlab("Century")+
-  ylab("Percent of Species Extinct")
+  ylab("Cumulative Extinctions (%)")
 extinctions_plot
 
   
 ```
+Note that due to the methods used to separate extinctions by year, century refers to the first two numbers of the year. (ex: 14th century acutally refers to the years with 14 as the first two digits, rather than the 1300s).
+
 Discuss issues with the data set (ie dates that are not explicitly written out 17th century etc. that would be dropped from the dataset, replacing NA values with 2023). Discuss differences in how much data is collected for each class. Implications of the graph. Discuss issues with sampling methods. 
 
 
@@ -209,31 +202,11 @@ head(amphibians, 20)
 #final table should include extinctions by year, cumulative extinctions up to and including each year, and percentage of total species that are extinct by year
 ```
 
-## Extinctions Module
+We can then compare the results from our table to those generated by Ceballos et al (2015)(http://doi.org/10.1126/sciadv.1400253), as shown below. There are some noticeable differences between the two, mainly that our graph is divided by class, while Ceballos et al. compared mammal and bird extinctions on their own compared to that of fish and amphibians (other vertebrates), compared to the total cumulative exinction rates of all categories combined (vertebrates). Ceballos et al. used a background rate of extinction (dashed black line) of 2 species extinctions per million years, while our graph used a value of one extinction per million species years. 
 
-_Are we experiencing the sixth great extinction?_  
 
-What is the current pace of extinction? Is it accelerating? How does it compare to background extinction rates?
-
-Background extinctions rate is one species per million years. 
-
-## Background
-
-- [Section Intro Video](https://youtu.be/QsH6ytm89GI)
-- [Ceballos et al (2015)](http://doi.org/10.1126/sciadv.1400253)
-
-Our focal task will be to reproduce the result from Ceballos and colleagues showing the recent increase in extinction rates relative to the background rate:
 
 ![](https://espm-157.carlboettiger.info/img/extinctions.jpg)
-
-
-## Computational Topics
-
-- Accessing data from a RESTful API
-- Error handling
-- JSON data format
-- Regular expressions
-- Working with missing values
 
 ## Additional references:
 

@@ -6,7 +6,7 @@ output:
  md_document:
  github_document:
 ---
-
+### Introduction to the Data
 ```{r include=FALSE}
 library("tidyverse")
 library("httr")
@@ -17,7 +17,7 @@ library("ggplot2")
 knitr::opts_chunk$set(comment=NA)
 ```
 In this module, we are attempting to examine and recreate the conclusions drawn by Ceballos et al. in their 2015 paper which concludes that "the average rate of vertebrate species loss over the last century is up to 100 times higher than the background rate " (Ceballos et al. 2015). This paper builds off the work of Barnosky et al. (2011), who examined the fossil records to determine that current extinction rates are higher than those expected by the record. In order to qualify as a "Mass Extinction", the rate of extinction is higher than that of any other geological epoch and results in a loss of over 75% of estimated species within a relatively short geological period, usually less than 2 million years, and the rate of extinction is higher than the background rate (Barnosky et al. 2011). 
-
+## Retrieving the Data
 In order to examine current extinction data, we need to access the IUCN Red List historical data on species extinctions. This data can be found in the following file, as our own attempt to call the URL caused the database to crash. This file allows us to quickly access the data from an external source (in this case a github page) rather than attempting to access it from the API every time we ran our code. 
 ```{r}
 download.file("https://github.com/espm-157/extinction-template/releases/download/data2.0/extinction-data.zip", "extinction-data.zip")
@@ -45,7 +45,7 @@ all_pages<- glue ("{base}/{species_endpoint}/{page}?token={token}")
 
 ```
 
-Because we are retrieving the data for multiple speceis and pages, we cna apply the map function to perform the function on each page, rather than doin it individually. This also stops the map function if the status code returned is above 200, that is to say, it cannot retrieve the page. 
+Because we are retrieving the data for multiple speceis and pages, we can apply the map function to perform the function on each page, rather than doin it individually. This also stops the map function if the status code returned is above 200, that is to say, it cannot retrieve the page. 
 ```{r}
 if(!file.exists("all_species.rds")){
 all_species<-map(all_pages, GET, .progress=TRUE)
@@ -153,7 +153,7 @@ total_sp<-combined|>
   filter(class%in% c("MAMMALIA", "AVES", "AMPHIBIA", "REPTILIA", "ACTINOPTERYGII"))|>
   count(class, name="total")
 ```
-
+## Examining Extinction Rates by Class
 ```{r}
 #filtered by extinctions by class and counts number of extinctions per century
 cumulative<-combined|>
@@ -169,7 +169,7 @@ cumulative<-combined|>
 
 
 ```
-
+## Graphing the Results
 ```{r}
 extinctions_plot<- cumulative|>
   ggplot()+
@@ -183,6 +183,7 @@ extinctions_plot
 ```
 Note that due to the methods used to separate extinctions by year, century refers to the first two numbers of the year. (ex: 14th century acutally refers to the years with 14 as the first two digits, rather than the 1300s).
 
+## Discussion
 Discuss issues with the data set (ie dates that are not explicitly written out 17th century etc. that would be dropped from the dataset, replacing NA values with 2023). Discuss differences in how much data is collected for each class. Implications of the graph. Discuss issues with sampling methods. 
 
 

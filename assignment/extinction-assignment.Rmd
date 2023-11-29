@@ -17,6 +17,7 @@ library("ggplot2")
 knitr::opts_chunk$set(comment=NA)
 ```
 In this module, we are attempting to examine and recreate the conclusions drawn by Ceballos et al. in their 2015 paper which concludes that "the average rate of vertebrate species loss over the last century is up to 100 times higher than the background rate " (Ceballos et al. 2015). This paper builds off the work of Barnosky et al. (2011), who examined the fossil records to determine that current extinction rates are higher than those expected by the record. In order to qualify as a "Mass Extinction", the rate of extinction is higher than that of any other geological epoch and results in a loss of over 75% of estimated species within a relatively short geological period, usually less than 2 million years, and the rate of extinction is higher than the background rate (Barnosky et al. 2011). 
+
 ## Retrieving the Data
 In order to examine current extinction data, we need to access the IUCN Red List historical data on species extinctions. This data can be found in the following file, as our own attempt to call the URL caused the database to crash. This file allows us to quickly access the data from an external source (in this case a github page) rather than attempting to access it from the API every time we ran our code. 
 ```{r}

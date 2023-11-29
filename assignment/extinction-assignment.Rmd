@@ -1,6 +1,6 @@
 ---
 title: "Examining the Evidence for a Sixth Mass Extinction"
-  maketitle: TRUE
+  maketitle: true
 author: "Maeve Gilbert, Russell Huang"
 output: 
  md_document:

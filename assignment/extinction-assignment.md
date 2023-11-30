@@ -108,7 +108,7 @@ extinct. We need to construct another REST API to obtain this data.
     GET(ex_urls[[1]])
 
     Response [https://apiv3.iucnredlist.org/api/v3/species/narrative/Mirogrex%20hulensis?token=9bb4facb6d23f48efbf424bb05c0c1ef1cf6f468393bc745d42179ac4aca5fee]
-      Date: 2023-11-30 02:52
+      Date: 2023-11-30 02:59
       Status: 200
       Content-Type: application/json; charset=utf-8
       Size: 1.65 kB
@@ -231,7 +231,6 @@ by color.
     extinctions_plot
 
 ![](extinction-assignment_files/figure-markdown_strict/unnamed-chunk-19-1.png)
-
 Note that due to the methods used to separate extinctions by year,
 century refers to the first two numbers of the year. (ex: 14th century
 actually refers to the years with 14 as the first two digits, rather

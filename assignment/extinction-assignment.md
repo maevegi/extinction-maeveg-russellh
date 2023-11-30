@@ -1,6 +1,7 @@
 ### Introduction to the Data
 
 In this module, we are attempting to examine and recreate the
+<<<<<<< HEAD
 conclusions drawn by Ceballos et al. in their 2015 paper which states
 that “the average rate of vertebrate species loss over the last century
 is up to 100 times higher than the background rate” (Ceballos et
@@ -12,6 +13,19 @@ extinction must be higher than that of the background rate and results
 in a loss of over 75% of estimated species within a relatively short
 geological period. This duration is usually less than 2 million years
 (Barnosky et al. 2011).
+=======
+conclusions drawn by Ceballos et al. in their 2015 paper which concludes
+that “the average rate of vertebrate species loss over the last century
+is up to 100 times higher than the background rate” (Ceballos et
+al. 2015). This paper builds off the work of Barnosky et al. (2011), who
+examined the fossil records to determine that current extinction rates
+are higher than those expected by the record. In order to qualify as a
+“Mass Extinction”, the rate of extinction is higher than that of any
+other geological epoch and results in a loss of over 75% of estimated
+species within a relatively short geological period, usually less than 2
+million years, and the rate of extinction is higher than the background
+rate (Barnosky et al. 2011).
+>>>>>>> d84c0aef4de6482eec3cbf79766505ca2eabf498
 
 ## Retrieving and Compiling the Data
 
@@ -62,8 +76,12 @@ the page.
     write_rds(all_species, "all_species.rds")
     }
 
+<<<<<<< HEAD
 This code will then read out the results from the cached data in the rds
 file.
+=======
+The code will then read out the results from the cached data.
+>>>>>>> d84c0aef4de6482eec3cbf79766505ca2eabf498
 
     all_species_rds<-read_rds("all_species.rds")
 
@@ -108,7 +126,11 @@ extinct. We need to construct another REST API to obtain this data.
     GET(ex_urls[[1]])
 
     Response [https://apiv3.iucnredlist.org/api/v3/species/narrative/Mirogrex%20hulensis?token=9bb4facb6d23f48efbf424bb05c0c1ef1cf6f468393bc745d42179ac4aca5fee]
+<<<<<<< HEAD
       Date: 2023-11-30 02:36
+=======
+      Date: 2023-11-30 02:35
+>>>>>>> d84c0aef4de6482eec3cbf79766505ca2eabf498
       Status: 200
       Content-Type: application/json; charset=utf-8
       Size: 1.65 kB
@@ -146,18 +168,31 @@ containing the extinction date.
 
     [1] "The Hula lake and adjacent marshes were drained in the 1950s. Drainage of the lake resulted in the species being restricted to marsh and pond areas in Hula nature reserve. The reserve management switched from using spring water to fishpond water in the species' habitat, resulting in decline and the extinction of the fish within six years of doing so. The species was last recorded in 1975."
 
+<<<<<<< HEAD
 However, the dates listed in sections of text can’t be read into a
 table. In order to make a table of the data, we need to extract only the
 date that the species was last recorded. Once again, we can apply the
 map function to extract all four digit integers from each of the
 narrative population data and list them.
+=======
+However, these dates are listed in sections of text, and in order to
+make a table of the data, we need to extract only the date that the
+species was last recorded. Once again, we can apply the map function to
+extract all four digit integers from each of the narrative population
+data and list them.
+>>>>>>> d84c0aef4de6482eec3cbf79766505ca2eabf498
 
     last_seen<-narrative_population |> 
       map_chr(str_extract, "\\d{4}")|> 
       as.integer()
 
 Once we have the list of last seen dates, they can then be put into a
+<<<<<<< HEAD
 tibble with the scientific name for each species.
+=======
+tibble containing the scientific name and extinction dates for each
+species.
+>>>>>>> d84c0aef4de6482eec3cbf79766505ca2eabf498
 
     gone<-tibble(sci_name, last_seen)|>
       distinct()
@@ -192,7 +227,11 @@ which gives a total count of each species in each class. By grouping the
 classes together, we can calculate the percentage of each class that
 went extinct in each year by dividing the number of extinctions (n) by
 the total number of species in the class (total). However, because we
+<<<<<<< HEAD
 are basing this off of extinction rates of million species years, we
+=======
+are basing this off of extinction rates of million species year, we
+>>>>>>> d84c0aef4de6482eec3cbf79766505ca2eabf498
 would need to multiply by one million and then divide by one hundred. We
 then need to divide by one hundred again in order to get a percentage of
 the total species evaluated by the IUCN. This means that the ultimate
@@ -219,7 +258,11 @@ of species in each class and multiplying by 100.
 
 Once we have the cumulative percentages for each class, we can graph
 these results. The x-axis units are centuries and the y axis is the
+<<<<<<< HEAD
 cumulative percentage of extinct species. The classes are differentiated
+=======
+cumulative percentage of extinct speices. The classes are differentiated
+>>>>>>> d84c0aef4de6482eec3cbf79766505ca2eabf498
 by color.
 
     extinctions_plot<- cumulative|>
@@ -258,14 +301,22 @@ These are usually the two best-described classes due to their visibility
 and preference by humans. There is therefore a longer record of the
 species, while the data for amphibians, reptiles, and bony fish only
 dates back to the 1800s. These classes may also be subject to some of
+<<<<<<< HEAD
 the other issues with the data as described above.
+=======
+the other issues with the data described above.
+>>>>>>> d84c0aef4de6482eec3cbf79766505ca2eabf498
 
 With these limitations in mind, we can then compare the results from our
 table to those generated by Ceballos et al. (2015), shown below. There
 are some noticeable differences between the two, mainly that our graph
 is divided by class, while Ceballos et al. compared mammal and bird
 extinctions on their own compared to that of fish and amphibians (other
+<<<<<<< HEAD
 vertebrates), compared to the total cumulative extinction rates of all
+=======
+vertebrates), compared to the total cumulative exinction rates of all
+>>>>>>> d84c0aef4de6482eec3cbf79766505ca2eabf498
 categories combined (vertebrates). Ceballos et al. used a background
 rate of extinction (dashed black line) of 2 species extinctions per
 million years, while our graph used a value of one extinction per

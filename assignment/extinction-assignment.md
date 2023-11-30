@@ -231,6 +231,7 @@ by color.
     extinctions_plot
 
 ![](extinction-assignment_files/figure-markdown_strict/unnamed-chunk-19-1.png)
+
 Note that due to the methods used to separate extinctions by year,
 century refers to the first two numbers of the year. (ex: 14th century
 actually refers to the years with 14 as the first two digits, rather

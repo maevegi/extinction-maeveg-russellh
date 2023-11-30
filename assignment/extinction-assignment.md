@@ -229,6 +229,7 @@ by color.
       xlab("Century")+
       ylab("Cumulative Extinctions (%)")
     extinctions_plot
+assignment/extinction-assignment_files/figure-markdown_strict/unnamed-chunk-18-1.png
 
 ![](extinction-assignment_files/figure-markdown_strict/unnamed-chunk-19-1.png)
 Note that due to the methods used to separate extinctions by year,

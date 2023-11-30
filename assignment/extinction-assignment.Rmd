@@ -5,6 +5,8 @@ output:
  md_document:
  github_document:
 ---
+### Examining the Evidence for a Sixth Mass Extinction
+### Maeve Gilbert, Russell Huang
 ### Introduction to the Data
 ```{r include=FALSE}
 library("tidyverse")

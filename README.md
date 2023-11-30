@@ -16,8 +16,8 @@ This assignment examines the evidence for the "Sixth Mass Extinction" as first d
 
 ### Other
 
-- `DESCRIPTION` a metadata file for the repository. It's main purpose here is as a place to list any additional R packages/libraries needed for any of the `.Rmd` files to run. In this case, we are using new libraries, including jsonlite and httr. 
-
+- `DESCRIPTION` a metadata file for the repository. It's main purpose here is as a place to list any additional R packages/libraries needed for any of the `.Rmd` files to run. In this case, we are using new libraries, including jsonlite and httr.
+- '.gitignore' has files that we do not want to commit to this github repository as they are too large.
 
 
 

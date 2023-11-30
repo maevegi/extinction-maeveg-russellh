@@ -1,3 +1,7 @@
+### Examining the Evidence for a Sixth Mass Extinction
+
+### Maeve Gilbert, Russell Huang
+
 ### Introduction to the Data
 
 In this module, we are attempting to examine and recreate the
@@ -108,7 +112,7 @@ extinct. We need to construct another REST API to obtain this data.
     GET(ex_urls[[1]])
 
     Response [https://apiv3.iucnredlist.org/api/v3/species/narrative/Mirogrex%20hulensis?token=9bb4facb6d23f48efbf424bb05c0c1ef1cf6f468393bc745d42179ac4aca5fee]
-      Date: 2023-11-30 02:59
+      Date: 2023-11-30 03:01
       Status: 200
       Content-Type: application/json; charset=utf-8
       Size: 1.65 kB

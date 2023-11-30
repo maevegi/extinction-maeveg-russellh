@@ -15,7 +15,7 @@ library("glue")
 library("ggplot2")
 knitr::opts_chunk$set(comment=NA)
 ```
-In this module, we are attempting to examine and recreate the conclusions drawn by Ceballos et al. in their 2015 paper which concludes that "the average rate of vertebrate species loss over the last century is up to 100 times higher than the background rate " (Ceballos et al. 2015). This paper builds off the work of Barnosky et al. (2011), who examined the fossil records to determine that current extinction rates are higher than those expected by the record. In order to qualify as a "Mass Extinction", the rate of extinction is higher than that of any other geological epoch and results in a loss of over 75% of estimated species within a relatively short geological period, usually less than 2 million years, and the rate of extinction is higher than the background rate (Barnosky et al. 2011). 
+In this module, we are attempting to examine and recreate the conclusions drawn by Ceballos et al. in their 2015 paper which states that "the average rate of vertebrate species loss over the last century is up to 100 times higher than the background rate " (Ceballos et al. 2015). This paper builds off the work of Barnosky et al. (2011), which examined the fossil record to determine that current extinction rates are higher than the rate that would be expected by the fossil record. In order to qualify as a "Mass Extinction", the rate of extinction must be higher than that of the background rate and results in a loss of over 75% of estimated species within a relatively short geological period. This duration is usually less than 2 million years (Barnosky et al. 2011). 
 
 ## Retrieving and Compiling the Data
 In order to examine current extinction data, we need to access the IUCN Red List historical data on species extinctions. This data can be found in the following file, as our own attempt to call the URL caused the database to crash. This file allows us to quickly access the data from an external source (in this case a github page) rather than attempting to access it from the API every time we ran our code. 
@@ -55,7 +55,7 @@ write_rds(all_species, "all_species.rds")
 
 ```
 
-The code will then read out the results from the cached data. 
+This code will then read out the results from the cached data in the rds file. 
 ```{r}
 all_species_rds<-read_rds("all_species.rds")
 
@@ -129,14 +129,14 @@ narrative_population[[1]]
 narrative_rationale[[1]]
 
 ```
-However, these dates are listed in sections of text, and in order to make a table of the data, we need to extract only the date that the species was last recorded. Once again, we can apply the map function to extract all four digit integers from each of the narrative population data and list them.
+However, the dates listed in sections of text can't be read into a table. In order to make a table of the data, we need to extract only the date that the species was last recorded. Once again, we can apply the map function to extract all four digit integers from each of the narrative population data and list them.
 ```{r}
 last_seen<-narrative_population |> 
   map_chr(str_extract, "\\d{4}")|> 
   as.integer()
 ```
 
-Once we have the list of last seen dates, they can then be put into a tibble containing the scientific name and extinction dates for each species. 
+Once we have the list of last seen dates, they can then be put into a tibble with the scientific name for each species. 
 ```{r}
 gone<-tibble(sci_name, last_seen)|>
   distinct()
@@ -158,7 +158,7 @@ total_sp<-combined|>
 ## Examining Extinction Rates by Class
 
 For our final table, we need to perform a number of functions in order to filter by the correct categories and determine extinction rates. From our combined table, we can filter by only species that are extinct. We can then filter by the relevant classes of species. However, there are many NA values in the data. These are species that have gone extinct but whose precise extinction date is unknown. We are therefore assigning the year 2023 to all NA values. The extinctions with known dates are assigned a century of extinction by filtering by the first two digits of the year. We then need to join this table with the total_sp table, which gives a total count of each species in each class. 
-By grouping the classes together, we can calculate the percentage of each class that went extinct in each year by dividing the number of extinctions (n) by the total number of species in the class (total). However, because we are basing this off of extinction rates of million species year, we would need to multiply by one million and then divide by one hundred. We then need to divide by one hundred again in order to get a percentage of the total species evaluated by the IUCN. This means that the ultimate calculation will only be multiplying by 100. From there, we calculated the cumulative sum of extinctions by class for each century. Using these numbers, we could calculate the cumulative percentages by dividing the cumulative number of extinct species in each class by the total number of species in each class and multiplying by 100.  
+By grouping the classes together, we can calculate the percentage of each class that went extinct in each year by dividing the number of extinctions (n) by the total number of species in the class (total). However, because we are basing this off of extinction rates of million species years, we would need to multiply by one million and then divide by one hundred. We then need to divide by one hundred again in order to get a percentage of the total species evaluated by the IUCN. This means that the ultimate calculation will only be multiplying by 100. From there, we calculated the cumulative sum of extinctions by class for each century. Using these numbers, we could calculate the cumulative percentages by dividing the cumulative number of extinct species in each class by the total number of species in each class and multiplying by 100.  
 ```{r}
 cumulative<-combined|>
   filter(category=="EX")|>
@@ -174,7 +174,7 @@ cumulative<-combined|>
 ```
 ## Graphing the Results
 
-Once we have the cumulative percentages for each class, we can graph these results. The x-axis units are centuries and the y axis is the cumulative percentage of extinct speices. The classes are differentiated by color. 
+Once we have the cumulative percentages for each class, we can graph these results. The x-axis units are centuries and the y axis is the cumulative percentage of extinct species. The classes are differentiated by color. 
 ```{r}
 extinctions_plot<- cumulative|>
   ggplot()+
@@ -192,9 +192,9 @@ Note that due to the methods used to separate extinctions by year, century refer
 
 It is important to note that in this data set, not all of the years are included in the total count. The method of filtering dates kept only those with four digits, which excluded extinction dates that may have been characterized by a century, for example, "This species went extinct in the 18th century". In these cases, the data would not have been retrieved because it was not a four-digit integer. Additionally, the NA dates that were replaced with 2023 may inaccurately represent the data of extinction and weigh the data more heavily towards the present. Another limitation of the data is that the species assessed by the IUCN are incomplete and do not reflect all species on Earth, especially those that have yet to be described by science. There are also instances where extinction dates may be inaccurate as the last sighting of a species does not necessarily reflect their absence on Earth. 
 
-Due to sampling biases and lack of data, there are major differences in the amount of data for mammals and birds compared to other classes. These are usually the two best-described classes due to their visibility and preference by humans. There is therefore a longer record of the species, while the data for amphibians, reptiles, and bony fish only dates back to the 1800s. These classes may also be subject to some of the other issues with the data described above. 
+Due to sampling biases and lack of data, there are major differences in the amount of data for mammals and birds compared to other classes. These are usually the two best-described classes due to their visibility and preference by humans. There is therefore a longer record of the species, while the data for amphibians, reptiles, and bony fish only dates back to the 1800s. These classes may also be subject to some of the other issues with the data as described above. 
 
-With these limitations in mind, we can then compare the results from our table to those generated by Ceballos et al. (2015), shown below. There are some noticeable differences between the two, mainly that our graph is divided by class, while Ceballos et al. compared mammal and bird extinctions on their own compared to that of fish and amphibians (other vertebrates), compared to the total cumulative exinction rates of all categories combined (vertebrates). Ceballos et al. used a background rate of extinction (dashed black line) of 2 species extinctions per million years, while our graph used a value of one extinction per million species years. However, both graphs represent increasing numbers of cumulative extinctions across all classes that exceed the background rate. It is especially high in mammals and birds. 
+With these limitations in mind, we can then compare the results from our table to those generated by Ceballos et al. (2015), shown below. There are some noticeable differences between the two, mainly that our graph is divided by class, while Ceballos et al. compared mammal and bird extinctions on their own compared to that of fish and amphibians (other vertebrates), compared to the total cumulative extinction rates of all categories combined (vertebrates). Ceballos et al. used a background rate of extinction (dashed black line) of 2 species extinctions per million years, while our graph used a value of one extinction per million species years. However, both graphs represent increasing numbers of cumulative extinctions across all classes that exceed the background rate. It is especially high in mammals and birds. 
 
 
 
